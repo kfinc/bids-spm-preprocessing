@@ -1,9 +1,11 @@
-function [matlabbatch] = batch_anat_job(path_anat)
+function [matlabbatch] = batch_anat_job(path_anat, filter)
+
+selector = strcat({'File Selector (Batch Mode): Selected Files'}, {' '}, {'('}, filter, {')'});
 
 matlabbatch{1}.cfg_basicio.file_dir.file_ops.file_fplist.dir = {path_anat};
-matlabbatch{1}.cfg_basicio.file_dir.file_ops.file_fplist.filter = 'T1';
+matlabbatch{1}.cfg_basicio.file_dir.file_ops.file_fplist.filter = filter;
 matlabbatch{1}.cfg_basicio.file_dir.file_ops.file_fplist.rec = 'FPList';
-matlabbatch{2}.spm.spatial.preproc.channel.vols(1) = cfg_dep('File Selector (Batch Mode): Selected Files (T1)', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','files'));
+matlabbatch{2}.spm.spatial.preproc.channel.vols(1) = cfg_dep(selector, substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','files'));
 matlabbatch{2}.spm.spatial.preproc.channel.biasreg = 0.001;
 matlabbatch{2}.spm.spatial.preproc.channel.biasfwhm = 60;
 matlabbatch{2}.spm.spatial.preproc.channel.write = [0 0];
@@ -44,27 +46,27 @@ matlabbatch{3}.spm.spatial.normalise.write.woptions.bb = [-78 -112 -70
                                                           78 76 85];
 matlabbatch{3}.spm.spatial.normalise.write.woptions.vox = [2 2 2];
 matlabbatch{3}.spm.spatial.normalise.write.woptions.interp = 4;
-matlabbatch{3}.spm.spatial.normalise.write.woptions.prefix = 'w';
+matlabbatch{3}.spm.spatial.normalise.write.woptions.prefix = 'w_';
 matlabbatch{4}.spm.spatial.normalise.write.subj.def(1) = cfg_dep('Segment: Forward Deformations', substruct('.','val', '{}',{2}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','fordef', '()',{':'}));
 matlabbatch{4}.spm.spatial.normalise.write.subj.resample(1) = cfg_dep('Segment: c1 Images', substruct('.','val', '{}',{2}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','tiss', '()',{1}, '.','c', '()',{':'}));
 matlabbatch{4}.spm.spatial.normalise.write.woptions.bb = [-78 -112 -70
                                                           78 76 85];
 matlabbatch{4}.spm.spatial.normalise.write.woptions.vox = [2 2 2];
 matlabbatch{4}.spm.spatial.normalise.write.woptions.interp = 4;
-matlabbatch{4}.spm.spatial.normalise.write.woptions.prefix = 'w';
+matlabbatch{4}.spm.spatial.normalise.write.woptions.prefix = 'w_';
 matlabbatch{5}.spm.spatial.normalise.write.subj.def(1) = cfg_dep('Segment: Forward Deformations', substruct('.','val', '{}',{2}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','fordef', '()',{':'}));
 matlabbatch{5}.spm.spatial.normalise.write.subj.resample(1) = cfg_dep('Segment: c2 Images', substruct('.','val', '{}',{2}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','tiss', '()',{2}, '.','c', '()',{':'}));
 matlabbatch{5}.spm.spatial.normalise.write.woptions.bb = [-78 -112 -70
                                                           78 76 85];
 matlabbatch{5}.spm.spatial.normalise.write.woptions.vox = [2 2 2];
 matlabbatch{5}.spm.spatial.normalise.write.woptions.interp = 4;
-matlabbatch{5}.spm.spatial.normalise.write.woptions.prefix = 'w';
+matlabbatch{5}.spm.spatial.normalise.write.woptions.prefix = 'w_';
 matlabbatch{6}.spm.spatial.normalise.write.subj.def(1) = cfg_dep('Segment: Forward Deformations', substruct('.','val', '{}',{2}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','fordef', '()',{':'}));
 matlabbatch{6}.spm.spatial.normalise.write.subj.resample(1) = cfg_dep('Segment: c3 Images', substruct('.','val', '{}',{2}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','tiss', '()',{3}, '.','c', '()',{':'}));
 matlabbatch{6}.spm.spatial.normalise.write.woptions.bb = [-78 -112 -70
                                                           78 76 85];
 matlabbatch{6}.spm.spatial.normalise.write.woptions.vox = [2 2 2];
 matlabbatch{6}.spm.spatial.normalise.write.woptions.interp = 4;
-matlabbatch{6}.spm.spatial.normalise.write.woptions.prefix = 'w';
+matlabbatch{6}.spm.spatial.normalise.write.woptions.prefix = 'w_';
 
 end

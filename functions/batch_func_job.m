@@ -1,21 +1,23 @@
-function [matlabbatch] = batch_func_job(path_func, path_anat, task)
+function [matlabbatch] = batch_func_job(path_func, path_anat, filter_fun, filter_anat)
+
+selector = strcat({'File Selector (Batch Mode): Selected Files'}, {' '}, {'('}, filter_fun, {')'});
 
 matlabbatch{1}.cfg_basicio.file_dir.file_ops.file_fplist.dir = {path_func};
-matlabbatch{1}.cfg_basicio.file_dir.file_ops.file_fplist.filter = task;
+matlabbatch{1}.cfg_basicio.file_dir.file_ops.file_fplist.filter = filter_fun;
 matlabbatch{1}.cfg_basicio.file_dir.file_ops.file_fplist.rec = 'FPList';
 matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_fplist.dir = {path_anat};
-matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_fplist.filter = '^sub';
+matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_fplist.filter = filter_anat;
 matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_fplist.rec = 'FPList';
 matlabbatch{3}.cfg_basicio.file_dir.file_ops.file_fplist.dir = {path_anat};
 matlabbatch{3}.cfg_basicio.file_dir.file_ops.file_fplist.filter = '^y';
 matlabbatch{3}.cfg_basicio.file_dir.file_ops.file_fplist.rec = 'FPList';
-matlabbatch{4}.spm.temporal.st.scans{1}(1) = cfg_dep('File Selector (Batch Mode): Selected Files (dualnback)', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','files'));
+matlabbatch{4}.spm.temporal.st.scans{1}(1) = cfg_dep(selector, substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','files'));
 matlabbatch{4}.spm.temporal.st.nslices = 42;
 matlabbatch{4}.spm.temporal.st.tr = 2;
 matlabbatch{4}.spm.temporal.st.ta = 1.95238095238095;
 matlabbatch{4}.spm.temporal.st.so = [1 3 5 7 9 11 13 15 17 19 21 23 25 27 29 31 33 35 37 39 41 2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 42];
 matlabbatch{4}.spm.temporal.st.refslice = 1;
-matlabbatch{4}.spm.temporal.st.prefix = 'a';
+matlabbatch{4}.spm.temporal.st.prefix = 'a_';
 matlabbatch{5}.spm.spatial.realign.estwrite.data{1}(1) = cfg_dep('Slice Timing: Slice Timing Corr. Images (Sess 1)', substruct('.','val', '{}',{4}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('()',{1}, '.','files'));
 matlabbatch{5}.spm.spatial.realign.estwrite.eoptions.quality = 0.9;
 matlabbatch{5}.spm.spatial.realign.estwrite.eoptions.sep = 4;
