@@ -4,15 +4,15 @@
 % "Temporal dynamics of functional connectivity changes induced by cognitive training", 
 % in which participants were fMRI scanned four time during intensive working memory training. 
 % 
-% Script iterates over all subjects, 4 scanning sessions and four tasks. 
-
+% Script iterates over all subjects, 4 scanning sessions and selected tasks. 
+%
 % SPM12 batch functions perform a standard fMRI data preprocessing
-% pipeline (slice-timing, head motion correction, coregistration,
+% pipeline (slice-timing, head motion correction, coregistration functional data to structural,
 % new unified segmentation-normalization, and smoothing (8x8x8). 
 %
 % Karolina Finc, Centre for Modern Interdisciplinary Technologies, NCU
 %
-% Last update: 30.03.2018
+% Last update: 31.03.2018
 
 %% SETUP
 clear;clc;
@@ -26,89 +26,115 @@ subjects = {all_files.name}; % creating cell array with subjects' IDs
 sessions = {'ses-1' 'ses-2' 'ses-3' 'ses-4'}; % specify names of folders with sessions (when londitudinal data)
 func = {'func'}; % specify name of folder with functional data
 anat = {'anat'}; % specify name of folder with structural data
-tasks = {'rest', 'spatialnback', 'audionback', 'dualnback'};
+tasks = {'rest', 'spatialnback', 'audionback', 'dualnback'};  % specify names of tasks
 
 
 %% MAIN LOOP
+log_file = fopen(fullfile(out_dir, 'preprocessing.log'), 'a'); % creating log file for storing information about missing data
 
-% Iterates over all subjects
-for i = 4: length(subjects)
+% iterates over subjects
+for i = 1: length(subjects)
     
-    % Iterates across all sessions
+    % iterates over sessions
     for j = 1: length(sessions)
 
-    % -------------- CHECKS AND MAKES FOLDERS --------------  
+        % --------------------------- CHECKS AND MAKES FOLDERS ---------------------------
 
-    sub_files.raw.sess.anat = create_path(top_dir, subjects{i}, sessions{j}, anat{1});
-    sub_files.raw.sess.func = create_path(top_dir, subjects{i}, sessions{j}, func{1});
-    
-    sub_files.prep.sess.anat = create_path(out_dir, subjects{i}, sessions{j}, anat{1});
-    sub_files.prep.sess.func = create_path(out_dir, subjects{i}, sessions{j}, func{1});
+        sub_files.raw.sess.anat = create_path(top_dir, subjects{i}, sessions{j}, anat{1});
+        sub_files.prep.sess.anat = create_path(out_dir, subjects{i}, sessions{j}, anat{1});
+
+        file.anat =  strcat(subjects{i}, '_', sessions{j}, '_T1w.nii');
+        path.anat = fullfile(sub_files.raw.sess.anat, file.anat);
 
         % checks if there is an anatomical file
-        if not(exist(sub_files.raw.sess.anat, 'dir'))
-            warning('No data %s data found for subject %s session %s\n', anat{1}, subjects{i}, sessions{j})
+        if ~exist(path.anat, 'file')      
+           fprintf(log_file, 'No %s data found: %s %s\n', anat{1}, subjects{i}, sessions{j});
         else
             
-            % -------------- MAKES A COPY OF ANAT FILE --------------  
-            
+
+            % --------------------------- MAKES A COPY OF ANAT FILE ---------------------------
+
             % creates anat folder for output data
-            if not(exist(sub_files.prep.sess.anat,'dir'))
-                mkdir(create_path(out_dir, subjects{i}, sessions{j}, ''), anat{1})
+            if ~exist(fullfile(sub_files.prep.sess.anat, file.anat), 'file')
+                fprintf('Copying %s data: %s %s \n', anat{1}, subjects{i}, sessions{j});
+                fprintf('======================================================================== \n');
+                mkdir(create_path(out_dir, subjects{i}, sessions{j}, ''), anat{1}); 
             end
-
-            files.anat = fullfile(sub_files.raw.sess.anat, 'sub*.nii');
-            copyfile(files.anat, sub_files.prep.sess.anat);
-
-            % -------------- SEGMENT & NORMALIZE ANAT FILE --------------  
-
-            %specify matlabbatch variable with subject-specific inputs
-            matlabbatch = batch_anat_job(sub_files.prep.sess.anat);
+            
             cd(sub_files.prep.sess.anat);
+            copyfile(path.anat, sub_files.prep.sess.anat, 'f');
+            
 
-            %run matlabbatch job
-            fprintf('Segmentation of structural file (subject %d session %d) \n', i, j)
-            fprintf('======================================================================== \n')
+            % --------------------------- SEGMENT & NORMALIZE ANAT FILE ---------------------------
+
+            % specifies matlabbatch variable with subject-specific inputs
+            matlabbatch = batch_anat_job(sub_files.prep.sess.anat, file.anat);
+
+            % runs matlabbatch job
+            fprintf('Segmentation & normalization of %s file: %s %s \n', anat{1}, subjects{i}, sessions{j});
+            fprintf('======================================================================== \n');
             spm_jobman('initcfg')
             spm('defaults', 'FMRI');
             spm_jobman('serial', matlabbatch);
             
-            
+            % iterates over tasks
             for k = 1: length(tasks)
                 
-                % checks if there is functional folder
-                if not(exist(sub_files.prep.sess.func, 'dir'))
-                    warning('No data %s data found for subject %s session %s\n', func{1}, subjects{i}, sessions{j})
+                sub_files.raw.sess.func = create_path(top_dir, subjects{i}, sessions{j}, func{1});
+                sub_files.prep.sess.func = create_path(out_dir, subjects{i}, sessions{j}, func{1});
+                                
+                file.task = strcat(subjects{i}, '_', sessions{j}, '_task-', tasks{k}, '_bold.nii');
+                path.func = fullfile(sub_files.raw.sess.func, file.task);
+                path.task = fullfile(sub_files.prep.sess.func, tasks{k});
+
+                % checks if there is a functional data
+                if ~exist(path.func, 'file')
+                    fprintf(log_file, 'No %s %s data found: %s %s\n', tasks{k}, func{1}, subjects{i}, sessions{j});
+                else      
+                    
+                    % --------------------------- MAKES A COPY OF FUNC FILE ---------------------------
+
+                    % creates func folder for output data 
+                    if ~exist(fullfile(path.task, file.task), 'file')
+                        fprintf('Copying %s %s data: %s %s \n', tasks{k}, func{1}, subjects{i}, sessions{j});
+                        fprintf('======================================================================== \n');
+                        mkdir(sub_files.prep.sess.func, tasks{k});
+                        copyfile(path.func, path.task, 'f');
+                    end
+                    
+                    
+                    % --------------------------- PREPROCESS OF FUNC FILE ---------------------------
+                    cd(path.task);                    
+
+                    % specifies matlabbatch variable with subject-specific inputs
+                    matlabbatch = batch_func_job(path.task, sub_files.prep.sess.anat, file.task, file.anat);
+
+                    %runs matlabbatch job
+                    fprintf('Preprocessing of %s task data: %s %s \n', tasks{k},  subjects{i}, sessions{j})
+                    fprintf('======================================================================== \n')
+                    spm_jobman('initcfg')
+                    spm('defaults', 'FMRI');
+                    spm_jobman('serial', matlabbatch);
+                    
+                    % --------------------------- DELETING UNNECESSARY FUNC FILES ---------------------------
+                    
+                    % just for saving some disk space
+                    
+                    fprintf('Deleting unnecessary files of %s %s data: %s %s \n', tasks{k}, func{1}, subjects{i}, sessions{j})
+                    fprintf('======================================================================== \n')
+                    
+                    delete (file.task); % raw functional file
+                    delete (strcat('a_', file.task)); % functional file after slice-timing
+                    delete (strcat('ra_', file.task)); % functional file after realignment
+                    
+                    fprintf('Done');
+
                 end
-
-                % creates func folder for output data 
-                if not(exist(sub_files.prep.sess.func,'dir'))
-                    mkdir(create_path(out_dir, subjects{i}, sessions{j}, ''), func{1})
-                end
-
-                % -------------- MAKES COPY OF FUNC FILE --------------  
-
-                files.func = fullfile(sub_files.raw.sess.func, 'sub*.nii');
-                copyfile(files.func, sub_files.prep.sess.func);
-               
-
-                % -------------- PREPROCESS FUNC FILE --------------  
-
-                %specify matlabbatch variable with subject-specific inputs
-                matlabbatch = batch_func_job(sub_files.prep.sess.func, sub_files.prep.sess.anat, tasks{k});
-                cd(sub_files.prep.sess.func);
-
-                %run matlabbatch job
-                fprintf('Functional data preprocessing of %s (subject ds, session %d) \n', k, i, j)
-                fprintf('======================================================================== \n')
-
-                spm_jobman('initcfg')
-                spm('defaults', 'FMRI');
-                spm_jobman('serial', matlabbatch);
             end
         end
     end
 end
 
+fclose(log_file);
 
-
+ 
