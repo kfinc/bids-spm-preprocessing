@@ -15,7 +15,7 @@
 % Last update: 31.03.2018
 
 %% SETUP
-clear;clc;
+clear; clc;
 
 top_dir = '/home/finc/Downloads/LearningBrain/'; % directory with raw subjects' data
 out_dir = '/home/finc/Downloads/LearningBrain/derivatives/spm_preprocessing/'; % output directory
@@ -119,14 +119,19 @@ for i = 1: length(subjects)
                     % --------------------------- DELETING UNNECESSARY FUNC FILES ---------------------------
                     
                     % just for saving some disk space
-                    
                     fprintf('Deleting unnecessary files of %s %s data: %s %s \n', tasks{k}, func{1}, subjects{i}, sessions{j})
                     fprintf('======================================================================== \n')
                     
-                    delete (file.task); % raw functional file
-                    delete (strcat('a_', file.task)); % functional file after slice-timing
-                    delete (strcat('ra_', file.task)); % functional file after realignment
+                    del.files{1} = file.task;
+                    del.files{2} = strcat('a_', file.task);
+                    del.files{3} = strcat('ra_', file.task);
                     
+                    cd(path.task);
+                    
+                    for l = 1: numel(del.files)
+                        delete(del.files{l}); % raw functional file
+                    end
+                                       
                     fprintf('Done');
 
                 end
