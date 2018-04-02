@@ -122,17 +122,19 @@ for i = 1: length(subjects)
                     fprintf('Deleting unnecessary files of %s %s data: %s %s \n', tasks{k}, func{1}, subjects{i}, sessions{j})
                     fprintf('======================================================================== \n')
                     
-                    del.files{1} = file.task;
-                    del.files{2} = strcat('a_', file.task);
-                    del.files{3} = strcat('ra_', file.task);
+                    del.files{1} = file.task; % raw functional file
+                    del.files{2} = strcat('a_', file.task); % data after slice-timing
+                    del.files{3} = strcat('ra_', file.task); % data after realignment
                     
                     cd(path.task);
                     
                     for l = 1: numel(del.files)
-                        delete(del.files{l}); % raw functional file
+                        delete(del.files{l}); 
                     end
                                        
-                    fprintf('Done');
+                    fprintf('Done \n');
+                    fprintf('======================================================================== \n')
+
 
                 end
             end
