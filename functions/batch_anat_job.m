@@ -3,7 +3,7 @@ function [matlabbatch] = batch_anat_job(path_anat, filter)
 selector = strcat({'File Selector (Batch Mode): Selected Files'}, {' '}, {'('}, filter, {')'});
 
 matlabbatch{1}.cfg_basicio.file_dir.file_ops.file_fplist.dir = {path_anat};
-matlabbatch{1}.cfg_basicio.file_dir.file_ops.file_fplist.filter = filter;
+matlabbatch{1}.cfg_basicio.file_dir.file_ops.file_fplist.filter = strcat('^', filter);
 matlabbatch{1}.cfg_basicio.file_dir.file_ops.file_fplist.rec = 'FPList';
 matlabbatch{2}.spm.spatial.preproc.channel.vols(1) = cfg_dep(selector, substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','files'));
 matlabbatch{2}.spm.spatial.preproc.channel.biasreg = 0.001;

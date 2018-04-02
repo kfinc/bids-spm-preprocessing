@@ -1,17 +1,18 @@
-function [matlabbatch] = batch_func_job(path_func, path_anat, filter_fun, filter_anat)
+function [matlabbatch] = batch_func_job(path_func, path_anat, filter_func, filter_anat)
 
-selector = strcat({'File Selector (Batch Mode): Selected Files'}, {' '}, {'('}, filter_fun, {')'});
+selector_func = strcat({'File Selector (Batch Mode): Selected Files'}, {' '}, {'('}, strcat('^', filter_func), {')'});
+selector_anat = strcat({'File Selector (Batch Mode): Selected Files'}, {' '}, {'('}, strcat('^', filter_anat), {')'});
 
 matlabbatch{1}.cfg_basicio.file_dir.file_ops.file_fplist.dir = {path_func};
-matlabbatch{1}.cfg_basicio.file_dir.file_ops.file_fplist.filter = filter_fun;
+matlabbatch{1}.cfg_basicio.file_dir.file_ops.file_fplist.filter = strcat('^', filter_func);
 matlabbatch{1}.cfg_basicio.file_dir.file_ops.file_fplist.rec = 'FPList';
 matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_fplist.dir = {path_anat};
-matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_fplist.filter = filter_anat;
+matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_fplist.filter = strcat('^', filter_anat);
 matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_fplist.rec = 'FPList';
 matlabbatch{3}.cfg_basicio.file_dir.file_ops.file_fplist.dir = {path_anat};
 matlabbatch{3}.cfg_basicio.file_dir.file_ops.file_fplist.filter = '^y';
 matlabbatch{3}.cfg_basicio.file_dir.file_ops.file_fplist.rec = 'FPList';
-matlabbatch{4}.spm.temporal.st.scans{1}(1) = cfg_dep(selector, substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','files'));
+matlabbatch{4}.spm.temporal.st.scans{1}(1) = cfg_dep(selector_func, substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','files'));
 matlabbatch{4}.spm.temporal.st.nslices = 42;
 matlabbatch{4}.spm.temporal.st.tr = 2;
 matlabbatch{4}.spm.temporal.st.ta = 1.95238095238095;
@@ -31,9 +32,9 @@ matlabbatch{5}.spm.spatial.realign.estwrite.roptions.interp = 4;
 matlabbatch{5}.spm.spatial.realign.estwrite.roptions.wrap = [0 0 0];
 matlabbatch{5}.spm.spatial.realign.estwrite.roptions.mask = 1;
 matlabbatch{5}.spm.spatial.realign.estwrite.roptions.prefix = 'r';
-matlabbatch{6}.spm.spatial.coreg.estimate.ref(1) = cfg_dep('File Selector (Batch Mode): Selected Files (^sub)', substruct('.','val', '{}',{2}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','files'));
-matlabbatch{6}.spm.spatial.coreg.estimate.source(1) = cfg_dep('Realign: Estimate & Reslice: Resliced Images (Sess 1)', substruct('.','val', '{}',{5}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','sess', '()',{1}, '.','rfiles'));
-matlabbatch{6}.spm.spatial.coreg.estimate.other = {''};
+matlabbatch{6}.spm.spatial.coreg.estimate.ref(1) = cfg_dep(selector_anat, substruct('.','val', '{}',{2}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','files'));
+matlabbatch{6}.spm.spatial.coreg.estimate.source(1) = cfg_dep('Realign: Estimate & Reslice: Mean Image', substruct('.','val', '{}',{5}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','rmean'));
+matlabbatch{6}.spm.spatial.coreg.estimate.other(1) = cfg_dep('Realign: Estimate & Reslice: Resliced Images (Sess 1)', substruct('.','val', '{}',{5}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','sess', '()',{1}, '.','rfiles'));
 matlabbatch{6}.spm.spatial.coreg.estimate.eoptions.cost_fun = 'nmi';
 matlabbatch{6}.spm.spatial.coreg.estimate.eoptions.sep = [4 2];
 matlabbatch{6}.spm.spatial.coreg.estimate.eoptions.tol = [0.02 0.02 0.02 0.001 0.001 0.001 0.01 0.01 0.01 0.001 0.001 0.001];
